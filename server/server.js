@@ -9,34 +9,38 @@ const studentSubmissionRoutes = require('./routes/studentSubmissionRoutes');
 
 const app = express();
 
-// CORS setup: allow frontend domain
+// ✅ CORS Configuration — Whitelist your frontend domain
 app.use(cors({
-  origin: ['https://online-exam-platform7.vercel.app'], // replace with your frontend if different
+  origin: [
+    'https://online-exam-platform5-r8u41hpvm-saurav-jenas-projects.vercel.app', // your React frontend
+    'http://localhost:5173' // optional: for local dev
+  ],
   credentials: true,
 }));
 
+// ✅ Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// ✅ API Routes
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/submission', studentSubmissionRoutes);
 
-// MongoDB connection
+// ✅ MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 10000, // avoid long delays if DB is unreachable
+  serverSelectionTimeoutMS: 10000,
 })
 .then(() => {
-  console.log('MongoDB connected ✅');
+  console.log('✅ MongoDB connected');
 })
 .catch(err => {
-  console.error('MongoDB connection error ❌:', err.message);
+  console.error('❌ MongoDB connection error:', err.message);
 });
 
-// ❗ Do NOT call app.listen — Vercel handles this automatically
+// ✅ Export app for Vercel (no app.listen())
 module.exports = app;
