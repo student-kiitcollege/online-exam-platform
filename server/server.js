@@ -12,7 +12,7 @@ const app = express();
 // ✅ CORS Configuration — Whitelist your frontend domain
 app.use(cors({
   origin: [
-    'https://online-exam-platform5.vercel.app/', // your React frontend
+    'https://online-exam-platform5.vercel.app', // your React frontend
     'http://localhost:5173' // optional: for local dev
   ],
   credentials: true,
