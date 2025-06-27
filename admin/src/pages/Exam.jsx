@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Webcam from 'react-webcam';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const Exam = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -23,10 +25,8 @@ const Exam = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const url = new URL('http://localhost:5000/api/questions/getquestions');
-        if (user?.email) {
-          url.searchParams.append('email', user.email);
-        }
+        const url = new URL(`${API_BASE_URL}/api/questions/getquestions`);
+        if (user?.email) url.searchParams.append('email', user.email);
 
         const response = await fetch(url.toString());
         if (!response.ok) {
@@ -74,9 +74,7 @@ const Exam = () => {
 
   useEffect(() => {
     if (isTimeUp) {
-      const timer = setTimeout(() => {
-        handleSubmit();
-      }, 500);
+      const timer = setTimeout(() => handleSubmit(), 500);
       return () => clearTimeout(timer);
     }
   }, [isTimeUp]);
@@ -89,20 +87,14 @@ const Exam = () => {
           setSnapshots((prev) => [...prev, { image: imageSrc, timestamp: new Date().toISOString() }]);
         }
       }
-    }, 10000); 
+    }, 10000);
 
-    return () => {
-      if (snapshotIntervalRef.current) {
-        clearInterval(snapshotIntervalRef.current);
-      }
-    };
+    return () => clearInterval(snapshotIntervalRef.current);
   }, []);
 
   const handleSubmit = async () => {
     try {
-      if (snapshotIntervalRef.current) {
-        clearInterval(snapshotIntervalRef.current);
-      }
+      if (snapshotIntervalRef.current) clearInterval(snapshotIntervalRef.current);
 
       const formattedAnswers = questions.map(q => ({
         questionId: q._id,
@@ -116,7 +108,7 @@ const Exam = () => {
         submittedAt: new Date().toISOString(),
       };
 
-      const response = await fetch('http://localhost:5000/api/submission/submit', {
+      const response = await fetch(`${API_BASE_URL}/api/submission/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -129,7 +121,6 @@ const Exam = () => {
 
       alert('Your exam has been submitted successfully.');
       navigate('/dashboard', { replace: true });
-
     } catch (err) {
       console.error('Error submitting exam:', err);
       alert('Failed to submit exam: ' + err.message);
@@ -138,10 +129,7 @@ const Exam = () => {
 
   const scrollToQuestion = (index) => {
     if (questionRefs.current[index]) {
-      questionRefs.current[index].scrollIntoView({
-        behavior: 'auto',
-        block: 'start',
-      });
+      questionRefs.current[index].scrollIntoView({ behavior: 'auto', block: 'start' });
     }
   };
 
@@ -176,21 +164,14 @@ const Exam = () => {
   return (
     <div className="p-8 bg-gray-900 text-white min-h-screen w-full">
       <h1 className="text-3xl mb-4 font-extrabold tracking-wide">Exam in Progress</h1>
-      <p className="mb-8 text-indigo-300">
-        Student Email: <span className="font-semibold text-white">{user?.email}</span>
-      </p>
+      <p className="mb-8 text-indigo-300">Student Email: <span className="font-semibold text-white">{user?.email}</span></p>
 
       <div className="mb-6 flex justify-between items-center pr-32 text-lg select-none">
         <p>Total Questions: <span className="font-semibold">{questions.length}</span></p>
         <div className="flex flex-col items-end w-48">
-          <p className="mb-1">
-            Time Left: <span className={`font-semibold ${timeLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{timeLeft}s</span>
-          </p>
+          <p className="mb-1">Time Left: <span className={`font-semibold ${timeLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{timeLeft}s</span></p>
           <div className="w-full h-3 rounded-full bg-gray-700 overflow-hidden shadow-inner">
-            <div
-              className={`${timerColor} h-full transition-all duration-500 ease-in-out`}
-              style={{ width: `${timerPercentage}%` }}
-            />
+            <div className={`${timerColor} h-full transition-all duration-500 ease-in-out`} style={{ width: `${timerPercentage}%` }} />
           </div>
         </div>
       </div>
@@ -228,8 +209,8 @@ const Exam = () => {
               Q{index + 1}. {q.questionText}
             </h2>
 
-            {(q.type === 'mcq' && Array.isArray(q.options) && q.options.length > 0) || q.type === 'boolean' ? (
-              ((q.type === 'boolean' ? ['True', 'False'] : q.options) || []).map((opt, idx) => {
+            {(q.type === 'mcq' || q.type === 'boolean') ? (
+              (q.type === 'boolean' ? ['True', 'False'] : q.options).map((opt, idx) => {
                 const selected = answers[q._id] === opt;
                 return (
                   <div
@@ -239,14 +220,7 @@ const Exam = () => {
                       ${selected ? 'bg-blue-600 border-blue-400 shadow-lg' : 'bg-gray-700 border-gray-600 hover:bg-gray-600 hover:border-blue-500'}
                       hover:scale-[1.02]`}
                   >
-                    <input
-                      type="radio"
-                      name={q._id}
-                      value={opt}
-                      checked={selected}
-                      readOnly
-                      className="mr-3"
-                    />
+                    <input type="radio" name={q._id} value={opt} checked={selected} readOnly className="mr-3" />
                     {opt}
                   </div>
                 );

@@ -10,6 +10,8 @@ import {
   faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const MonitoringPanel = () => {
   const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
@@ -21,7 +23,7 @@ const MonitoringPanel = () => {
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/submission/getAll');
+        const res = await fetch(`${API_BASE_URL}/api/submission/getAll`);
         if (!res.ok) throw new Error('Failed to fetch submissions');
         const data = await res.json();
         setSubmissions(data);
@@ -48,7 +50,7 @@ const MonitoringPanel = () => {
   const handleDelete = async (submissionId) => {
     if (!window.confirm("Are you sure you want to delete this submission?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/submission/delete/${submissionId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/submission/delete/${submissionId}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('Failed to delete submission');

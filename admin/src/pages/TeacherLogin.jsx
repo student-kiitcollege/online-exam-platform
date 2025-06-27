@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const TeacherLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,15 +15,20 @@ const TeacherLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || 'Login failed');
 
       if (data.role !== 'teacher') {
         setError('Access denied. Only teachers allowed.');
@@ -40,7 +47,7 @@ const TeacherLogin = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
       <div className="bg-gray-800 p-6 rounded shadow-md w-full max-w-sm">
-        <h1 className="text-2xl mb-4 text-center">Teacher Login</h1>
+        <h1 className="text-2xl mb-4 text-center font-bold text-indigo-300">Teacher Login</h1>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <form onSubmit={handleLogin}>
@@ -65,19 +72,20 @@ const TeacherLogin = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={8}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-2 top-9 text-gray-400 hover:text-white focus:outline-none"
             >
-              {showPassword ? <FaEye /> : <FaEyeSlash />}
+              {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
             </button>
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+            className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors cursor-pointer"
           >
             Login
           </button>
