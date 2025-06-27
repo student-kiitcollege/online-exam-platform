@@ -3,15 +3,18 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-// Route imports
-const questionRoutes = require('./routes/questionRoutes'); 
+const questionRoutes = require('./routes/questinRoutes'); 
 const authRoutes = require('./routes/authRoutes');
 const studentSubmissionRoutes = require('./routes/studentSubmissionRoutes');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS setup: allow frontend domain
+app.use(cors({
+  origin: ['https://online-exam-platform7.vercel.app'], // replace with your frontend if different
+  credentials: true,
+}));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -20,18 +23,20 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/submission', studentSubmissionRoutes);
 
-// MongoDB connection (connect only once)
+// MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI;
+
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 10000, // avoid long delays if DB is unreachable
 })
 .then(() => {
   console.log('MongoDB connected ✅');
 })
 .catch(err => {
-  console.error('MongoDB connection error ❌:', err);
+  console.error('MongoDB connection error ❌:', err.message);
 });
 
-// ❗ No app.listen here — Vercel handles the server
+// ❗ Do NOT call app.listen — Vercel handles this automatically
 module.exports = app;
