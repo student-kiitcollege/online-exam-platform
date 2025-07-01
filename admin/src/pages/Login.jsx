@@ -6,8 +6,10 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
+  const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -18,9 +20,35 @@ const Login = () => {
   const [tempUser, setTempUser] = useState(null);
   const [tempToken, setTempToken] = useState(null);
 
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    if (!name || !email || !password) {
+      setError('All fields are required for signup');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role: 'student' }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
+
+      setError('');
+      alert('Signup successful! Please login now.');
+      setIsSignup(false); // Switch back to login view
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
-
     if (!email || !password) {
       setError('Email and Password are required');
       return;
@@ -76,16 +104,30 @@ const Login = () => {
               className="w-full mb-4 rounded"
             />
             <p className="text-lg text-gray-300">
-              Welcome to <span className="font-semibold">CybknowExam</span> – Your trusted online exam platform. Login to begin!
+              Welcome to <span className="font-semibold">CybknowExam</span> – Your trusted online exam platform.
             </p>
           </div>
         </div>
 
         <div className="w-1/2 flex items-center justify-center p-8">
           <div className="bg-gray-800 p-6 rounded shadow-md w-full max-w-sm">
-            <h1 className="text-2xl mb-4 text-center">Student Login</h1>
+            <h1 className="text-2xl mb-4 text-center">{isSignup ? 'Student Signup' : 'Student Login'}</h1>
             {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-            <form onSubmit={handleLogin}>
+            <form onSubmit={isSignup ? handleSignup : handleLogin}>
+              {isSignup && (
+                <div className="mb-4">
+                  <label htmlFor="name" className="block text-sm mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    className="w-full p-2 rounded bg-gray-700 text-white"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
               <div className="mb-4">
                 <label htmlFor="email" className="block text-sm mb-2">Email</label>
                 <input
@@ -112,7 +154,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-9 text-gray-400 hover:text-white focus:outline-none"
+                  className="absolute right-2 top-9 text-gray-400 hover:text-white"
                 >
                   {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
                 </button>
@@ -122,23 +164,40 @@ const Login = () => {
                 type="submit"
                 className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
               >
-                Login
+                {isSignup ? 'Create Account' : 'Login'}
               </button>
             </form>
 
-            <div className="flex items-center my-6">
-              <div className="flex-grow border-t border-gray-600"></div>
-              <span className="mx-4 text-gray-400 text-sm">OR</span>
-              <div className="flex-grow border-t border-gray-600"></div>
-            </div>
+            <p className="mt-4 text-center text-sm">
+              {isSignup ? 'Already have an account?' : 'New user?'}{' '}
+              <span
+                className="text-blue-400 underline cursor-pointer"
+                onClick={() => {
+                  setIsSignup(!isSignup);
+                  setError('');
+                }}
+              >
+                {isSignup ? 'Login here' : 'Signup now'}
+              </span>
+            </p>
 
-            <button
-              type="button"
-              onClick={() => navigate('/teacher-login')}
-              className="w-full py-2 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition-all duration-300 ease-in-out cursor-pointer"
-            >
-              👨‍🏫 Teacher Login
-            </button>
+            {!isSignup && (
+              <>
+                <div className="flex items-center my-6">
+                  <div className="flex-grow border-t border-gray-600"></div>
+                  <span className="mx-4 text-gray-400 text-sm">OR</span>
+                  <div className="flex-grow border-t border-gray-600"></div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/teacher-login')}
+                  className="w-full py-2 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white font-semibold rounded-lg shadow-lg hover:opacity-90 transition-all duration-300"
+                >
+                  👨‍🏫 Teacher Login
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -166,13 +225,13 @@ const Login = () => {
             <div className="flex justify-between gap-4 mt-6">
               <button
                 onClick={handleAgree}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full hover:cursor-pointer"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full"
               >
                 I Agree
               </button>
               <button
                 onClick={handleCancel}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded w-full hover:cursor-pointer"
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded w-full"
               >
                 Cancel
               </button>
