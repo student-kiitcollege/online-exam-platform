@@ -9,25 +9,21 @@ const studentSubmissionRoutes = require('./routes/studentSubmissionRoutes');
 
 const app = express();
 
-// ✅ CORS Configuration — Whitelist your frontend domain
 app.use(cors({
   origin: [
-    'https://online-exam-platform5.vercel.app', // your React frontend
-    'http://localhost:5173' // optional: for local dev
+    'https://online-exam-platform5.vercel.app', 
+    'http://localhost:5173' 
   ],
   credentials: true,
 }));
 
-// ✅ Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ API Routes
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/submission', studentSubmissionRoutes);
 
-// ✅ MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI, {
@@ -42,5 +38,4 @@ mongoose.connect(MONGODB_URI, {
   console.error('❌ MongoDB connection error:', err.message);
 });
 
-// ✅ Export app for Vercel (no app.listen())
 module.exports = app;

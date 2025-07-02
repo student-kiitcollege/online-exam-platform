@@ -41,7 +41,7 @@ const Login = () => {
 
       setError('');
       alert('Signup successful! Please login now.');
-      setIsSignup(false); // Switch back to login view
+      setIsSignup(false); 
     } catch (err) {
       setError(err.message);
     }

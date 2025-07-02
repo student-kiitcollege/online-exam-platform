@@ -6,7 +6,7 @@ const answerSchema = new mongoose.Schema({
 });
 
 const snapshotSchema = new mongoose.Schema({
-  image: { type: String, required: true }, // base64 string or image URL
+  image: { type: String, required: true }, 
   timestamp: { type: Date, default: Date.now },
 });
 
